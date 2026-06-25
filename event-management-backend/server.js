@@ -22,22 +22,22 @@ const authService = require('./src/services/authService');
 const app = express();
 const server = http.createServer(app);
 
-/* =========================
-   ENV CONFIG
-========================= */
 const PORT = process.env.PORT || 5000;
 
-const CLIENT_URLS = [
+/* =========================
+   ALLOWED ORIGINS
+========================= */
+const allowedOrigins = [
   'http://localhost:3000',
   process.env.CLIENT_URL
 ].filter(Boolean);
 
 /* =========================
-   SOCKET.IO SETUP
+   SOCKET.IO
 ========================= */
 const io = new Server(server, {
   cors: {
-    origin: CLIENT_URLS,
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true
   }
@@ -60,9 +60,7 @@ process.on('uncaughtException', (err) => {
    START SERVER
 ========================= */
 const startServer = async () => {
-  /* =========================
-     DATABASE CONNECTION
-  ========================= */
+  /* DB CONNECTION */
   try {
     await connectDB();
     logger.info('✅ MongoDB connected successfully');
@@ -70,35 +68,39 @@ const startServer = async () => {
     logger.error('❌ MongoDB connection failed:', err.message);
   }
 
-  /* =========================
-     MIDDLEWARE
-  ========================= */
-
+  /* SECURITY */
   app.use(helmet());
+
+  /* BODY PARSER */
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  /* LOGGING */
   app.use(morgan('dev'));
 
   /* =========================
-     CORS CONFIG (FIXED)
+     CORS (FIXED - NO ERRORS)
   ========================= */
   app.use(cors({
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
 
-      if (CLIENT_URLS.includes(origin)) {
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      return callback(new Error('CORS blocked'));
+      // DO NOT THROW ERROR (important fix)
+      return callback(null, false);
     },
-    credentials: true
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   }));
 
-  logger.info(`✅ CORS enabled for: ${CLIENT_URLS.join(', ')}`);
+  console.log(`✅ CORS enabled for: ${allowedOrigins.join(', ')}`);
 
   /* =========================
-     ROOT ROUTE (FIXED ERROR)
+     ROOT ROUTE
   ========================= */
   app.get('/', (req, res) => {
     res.json({
@@ -107,8 +109,7 @@ const startServer = async () => {
       endpoints: {
         health: '/api/health',
         auth: '/api/auth',
-        events: '/api/events',
-        tickets: '/api/tickets'
+        events: '/api/events'
       }
     });
   });
@@ -135,7 +136,7 @@ const startServer = async () => {
   app.use('/api/activity', activityRoutes);
 
   /* =========================
-     ERROR HANDLER (LAST)
+     ERROR HANDLER
   ========================= */
   app.use(errorHandler);
 

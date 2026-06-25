@@ -21,16 +21,18 @@ const connectDB = async () => {
     });
 
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000,
-      family: 4
+      serverSelectionTimeoutMS: 10000,
+      maxPoolSize: 10,
+      retryWrites: true
     });
 
   } catch (error) {
     console.error('❌ DB connection failed:', error.message);
 
-    // DO NOT crash instantly in production-safe mode
-    console.warn('⚠️ Server will continue running without DB connection');
+    // IMPORTANT: crash in production so Render restarts cleanly
+    if (process.env.NODE_ENV === 'production') {
+      process.exit(1);
+    }
   }
 };
 
