@@ -29,7 +29,7 @@ exports.login = async (req, res, next) => {
 
 exports.getMe = async (req, res, next) => {
   try {
-    const { password, ...userWithoutPassword } = req.user.toObject();
+    const { password, ...userWithoutPassword } = req.user;
     ApiResponse.success(res, 'User profile', userWithoutPassword);
   } catch (error) {
     next(error);
