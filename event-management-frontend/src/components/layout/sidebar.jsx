@@ -1,4 +1,4 @@
-import { NavLink, useMatch } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -55,19 +55,19 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, setMo
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {filteredNavigation.map((item) => {
           const Icon = item.icon;
-          const isActive = useMatch(item.href);
           return (
             <NavLink
               key={item.name}
               to={item.href}
               onClick={() => setMobileOpen(false)}
-              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
-                collapsed ? "justify-center" : ""
-              } ${
-                isActive
+              className={({ isActive }) => `
+                relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group
+                ${collapsed ? "justify-center" : ""}
+                ${isActive
                   ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 dark:from-indigo-950/40 dark:to-purple-950/40 dark:text-purple-300 shadow-sm"
                   : "text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground"
-              }`}
+                }
+              `}
             >
               <Icon className={`h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:rotate-[-3deg] ${collapsed ? "mx-auto" : ""}`} />
               {!collapsed && <span className="text-sm font-medium truncate">{item.name}</span>}
@@ -76,7 +76,7 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, setMo
                   {item.name}
                 </div>
               )}
-              {isActive && (
+              {({ isActive }) => isActive && (
                 <span className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-l-full bg-gradient-to-b from-indigo-500 to-purple-500" />
               )}
             </NavLink>
@@ -125,17 +125,18 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, setMo
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {filteredNavigation.map((item) => {
             const Icon = item.icon;
-            const isActive = useMatch(item.href);
             return (
               <NavLink
                 key={item.name}
                 to={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
-                  isActive
+                className={({ isActive }) => `
+                  flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                  ${isActive
                     ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 dark:from-indigo-950/40 dark:to-purple-950/40 dark:text-purple-300 shadow-sm"
                     : "text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground"
-                }`}
+                  }
+                `}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
                 <span className="text-sm font-medium truncate">{item.name}</span>
