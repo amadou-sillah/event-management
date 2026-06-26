@@ -1,14 +1,17 @@
-import { Search, Bell, Moon, Sun, User } from "lucide-react";
+import { Search, Bell, Moon, Sun, User, Menu } from "lucide-react";
 import { useTheme } from "../../contexts/theme-context";
 import { useAuth } from "../../contexts/auth-context";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 
-export function Header() {
+export function Header({ toggleMobileMenu }) {
   const { darkMode, toggleDarkMode } = useTheme();
   const { user } = useAuth();
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
+      <Button variant="ghost" size="icon" onClick={toggleMobileMenu} className="md:hidden">
+        <Menu className="h-5 w-5" />
+      </Button>
       <div className="relative flex-1 max-w-md">
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input type="search" placeholder="Search events, attendees..." className="pl-8" />

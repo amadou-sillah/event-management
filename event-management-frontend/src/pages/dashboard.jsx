@@ -271,7 +271,7 @@ export default function Dashboard() {
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </CardHeader>
-            <CardContent className="pt-4 h-[260px]">
+            <CardContent className="pt-4 h-[180px] sm:h-[200px] sm:h-[260px]">
               {monthlyData.length === 0 ? (
                 <div className="h-full flex items-center justify-center text-muted-foreground">
                   No data available
@@ -333,7 +333,7 @@ export default function Dashboard() {
               <CardTitle>Ticket Distribution</CardTitle>
               <p className="text-sm text-muted-foreground">Paid vs Free</p>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center h-[200px]">
+            <CardContent className="flex flex-col items-center justify-center h-[180px] sm:h-[200px]">
               {pieData.length === 0 ? (
                 <div className="text-muted-foreground">No data</div>
               ) : (
