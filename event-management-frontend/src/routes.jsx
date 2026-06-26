@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./components/layout/protected-route";
+import { RoleGuard } from "./components/layout/role-guard";
 import { MainLayout } from "./components/layout/main-layout";
 import Login from "./pages/login";
 import Register from "./pages/register";
@@ -10,7 +11,7 @@ import CreateEvent from "./pages/create-event";
 import Attendees from "./pages/attendees";
 import Ticketing from "./pages/Ticketing";
 import Library from "./pages/Library";
-import Settings from "./pages/Settings"; // ✅ New import
+import Settings from "./pages/Settings";
 
 export default function AppRoutes() {
   return (
@@ -22,13 +23,46 @@ export default function AppRoutes() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/events" element={<EventsList />} />
-          <Route path="/events/create" element={<CreateEvent />} />
           <Route path="/events/:id" element={<EventDetails />} />
-          <Route path="/events/:id/edit" element={<CreateEvent />} />
+
+          <Route
+            path="/events/create"
+            element={
+              <RoleGuard allowedRoles={['admin', 'organizer']}>
+                <CreateEvent />
+              </RoleGuard>
+            }
+          />
+          <Route
+            path="/events/:id/edit"
+            element={
+              <RoleGuard allowedRoles={['admin', 'organizer']}>
+                <CreateEvent />
+              </RoleGuard>
+            }
+          />
+
           <Route path="/attendees" element={<Attendees />} />
-          <Route path="/ticketings" element={<Ticketing />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/settings" element={<Settings />} /> {/* ✅ New route */}
+
+          <Route
+            path="/ticketings"
+            element={
+              <RoleGuard allowedRoles={['admin', 'organizer']}>
+                <Ticketing />
+              </RoleGuard>
+            }
+          />
+
+          <Route
+            path="/library"
+            element={
+              <RoleGuard allowedRoles={['admin', 'organizer']}>
+                <Library />
+              </RoleGuard>
+            }
+          />
+
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Route>
     </Routes>

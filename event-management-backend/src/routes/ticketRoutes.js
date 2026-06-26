@@ -2,21 +2,21 @@ const express = require('express');
 const router = express.Router();
 const ticketController = require('../controllers/ticketController');
 const auth = require('../middleware/auth');
+const roleCheck = require('../middleware/roleCheck');
 
+// All routes require authentication
 router.use(auth);
 
-// ---- New: get all tickets for the organizer ----
+// Everyone can view tickets
 router.get('/', ticketController.getAllTickets);
-
-// ---- Per-event endpoints ----
-router.post('/events/:eventId/tickets', ticketController.addTicketType);
 router.get('/events/:eventId/tickets', ticketController.getEventTickets);
 
-// ---- Ticket CRUD ----
-router.put('/:id', ticketController.updateTicket);
-router.delete('/:id', ticketController.deleteTicket);
+// Only admin and organizer can manage tickets
+router.post('/events/:eventId/tickets', roleCheck('admin', 'organizer'), ticketController.addTicketType);
+router.put('/:id', roleCheck('admin', 'organizer'), ticketController.updateTicket);
+router.delete('/:id', roleCheck('admin', 'organizer'), ticketController.deleteTicket);
 
-// ---- Purchase (public) ----
+// Public purchase (no auth required)
 router.post('/purchase', ticketController.purchaseTicket);
 
 module.exports = router;
