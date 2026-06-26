@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useMatch } from "react-router-dom";
 import {
   LayoutDashboard,
   Calendar,
@@ -26,10 +26,7 @@ const navigation = [
 
 export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, setMobileOpen }) {
   const { user } = useAuth();
-
-  const filteredNavigation = navigation.filter(
-    (item) => user && item.roles.includes(user.role)
-  );
+  const filteredNavigation = navigation.filter(item => user && item.roles.includes(user.role));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -58,19 +55,19 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, setMo
       <nav className="flex-1 overflow-y-auto p-3 space-y-1">
         {filteredNavigation.map((item) => {
           const Icon = item.icon;
+          const isActive = useMatch(item.href);
           return (
             <NavLink
               key={item.name}
               to={item.href}
               onClick={() => setMobileOpen(false)}
-              className={({ isActive }) => `
-                relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group
-                ${collapsed ? "justify-center" : ""}
-                ${isActive
+              className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+                collapsed ? "justify-center" : ""
+              } ${
+                isActive
                   ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 dark:from-indigo-950/40 dark:to-purple-950/40 dark:text-purple-300 shadow-sm"
                   : "text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground"
-                }
-              `}
+              }`}
             >
               <Icon className={`h-5 w-5 flex-shrink-0 transition-all duration-200 group-hover:scale-110 group-hover:rotate-[-3deg] ${collapsed ? "mx-auto" : ""}`} />
               {!collapsed && <span className="text-sm font-medium truncate">{item.name}</span>}
@@ -109,16 +106,11 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, setMo
       </aside>
 
       {mobileOpen && (
-        <div
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden"
-          onClick={() => setMobileOpen(false)}
-        />
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm md:hidden" onClick={() => setMobileOpen(false)} />
       )}
-      <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-background border-r transition-transform duration-300 ease-in-out md:hidden ${
-          mobileOpen ? "translate-x-0 w-64" : "-translate-x-full"
-        }`}
-      >
+      <aside className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-background border-r transition-transform duration-300 ease-in-out md:hidden ${
+        mobileOpen ? "translate-x-0 w-64" : "-translate-x-full"
+      }`}>
         <div className="flex items-center justify-between p-4 border-b border-border/50">
           <NavLink to="/dashboard" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/25">
@@ -133,18 +125,17 @@ export function Sidebar({ collapsed = false, onToggle, mobileOpen = false, setMo
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {filteredNavigation.map((item) => {
             const Icon = item.icon;
+            const isActive = useMatch(item.href);
             return (
               <NavLink
                 key={item.name}
                 to={item.href}
                 onClick={() => setMobileOpen(false)}
-                className={({ isActive }) => `
-                  flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
-                  ${isActive
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
+                  isActive
                     ? "bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 dark:from-indigo-950/40 dark:to-purple-950/40 dark:text-purple-300 shadow-sm"
                     : "text-muted-foreground hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-foreground"
-                  }
-                `}
+                }`}
               >
                 <Icon className="h-5 w-5 flex-shrink-0" />
                 <span className="text-sm font-medium truncate">{item.name}</span>
