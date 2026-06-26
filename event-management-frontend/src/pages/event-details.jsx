@@ -132,7 +132,7 @@ export default function EventDetails() {
         <img
           src={event.imageUrl || "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=1200"}
           alt={event.title}
-          className="w-full h-48 sm:h-64 md:h-80 object-cover"
+          className="w-full h-48 sm:h-64 md:h-48 sm:h-64 md:h-80 object-cover"
         />
       </div>
 
