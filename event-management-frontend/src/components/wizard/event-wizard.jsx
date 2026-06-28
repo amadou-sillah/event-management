@@ -13,6 +13,7 @@ export function EventWizard({ initialData = {}, onSubmit, isEditing = false }) {
   const [formData, setFormData] = useState({
     title: "", description: "", category: "Conference", imageUrl: "",
     startDate: "", endDate: "", venue: "", city: "", capacity: 100, ticketPrice: 0,
+    status: "draft",  // <-- added status
     ...initialData
   });
   const [errors, setErrors] = useState({});
