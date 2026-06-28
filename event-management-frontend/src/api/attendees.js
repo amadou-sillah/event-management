@@ -11,7 +11,8 @@ export const fetchAttendees = async (params = {}) => {
 
 // Register a new attendee for a specific event
 export const registerAttendee = async (eventId, attendeeData) => {
-  const response = await apiClient.post(`/events/${eventId}/attendees`, attendeeData);
+  // ✅ Fixed: match backend route /api/attendees/events/:eventId/attendees
+  const response = await apiClient.post(`/attendees/events/${eventId}/attendees`, attendeeData);
   return response.data?.data;
 };
 
@@ -29,7 +30,8 @@ export const deleteAttendee = async (attendeeId) => {
 
 // Optional: fetch attendees for a specific event
 export const fetchEventAttendees = async (eventId, params = {}) => {
-  const response = await apiClient.get(`/events/${eventId}/attendees`, { params });
+  // ✅ Fixed: match backend route /api/attendees/events/:eventId/attendees
+  const response = await apiClient.get(`/attendees/events/${eventId}/attendees`, { params });
   return {
     data: response.data?.data || [],
     pagination: response.data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1 }
