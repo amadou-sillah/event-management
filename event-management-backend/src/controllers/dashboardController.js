@@ -1,5 +1,6 @@
 const Event = require('../models/Event');
 const Ticket = require('../models/Ticket');
+const Attendee = require('../models/Attendee');
 const User = require('../models/User');
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -9,13 +10,9 @@ const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 // ============================================================
 exports.getDashboardData = async (req, res) => {
   try {
-    // ✅ FIX: Use the same safe pattern as eventController
-    const userId = req.user?._id || req.user?.id;
+    const userId = req.user._id || req.user.id;
     if (!userId) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Unauthorized: No user ID found' 
-      });
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
 
     console.log('🔍 Dashboard userId:', userId);
@@ -24,17 +21,16 @@ exports.getDashboardData = async (req, res) => {
     const user = await User.findById(userId);
     const userName = user ? user.name : 'Organizer';
 
-    // ---- 2. Basic counts ----
+    // ---- 2. Total Events ----
     const totalEvents = await Event.countDocuments({ organizerId: userId });
     console.log('📊 Total events:', totalEvents);
 
-    const attendeeAgg = await Event.aggregate([
-      { $match: { organizerId: userId } },
-      { $group: { _id: null, total: { $sum: '$ticketsSold' } } }
-    ]);
-    const totalAttendees = attendeeAgg.length > 0 ? attendeeAgg[0].total : 0;
+    // ---- 3. Total Attendees (from Attendee collection) ----
+    const eventIds = await Event.find({ organizerId: userId }).select('_id');
+    const totalAttendees = await Attendee.countDocuments({ eventId: { $in: eventIds } });
+    console.log('👥 Total attendees:', totalAttendees);
 
-    // ---- 3. Ticket stats (via lookup) ----
+    // ---- 4. Ticket stats (via lookup) ----
     const ticketStats = await Ticket.aggregate([
       {
         $lookup: {
@@ -70,7 +66,7 @@ exports.getDashboardData = async (req, res) => {
     const paidTickets = ticketStats.length > 0 ? ticketStats[0].paidTickets : 0;
     const freeTickets = ticketStats.length > 0 ? ticketStats[0].freeTickets : 0;
 
-    // ---- 4. Monthly data (last 6 months) ----
+    // ---- 5. Monthly data (last 6 months) ----
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -113,14 +109,14 @@ exports.getDashboardData = async (req, res) => {
       });
     }
 
-    // ---- 5. Pie chart ----
+    // ---- 6. Pie chart ----
     const totalTicketCount = paidTickets + freeTickets || 1;
     const pieData = [
       { name: 'Paid', value: Math.round((paidTickets / totalTicketCount) * 100), color: '#8B5CF6' },
       { name: 'Free', value: Math.round((freeTickets / totalTicketCount) * 100), color: '#34D399' }
     ];
 
-    // ---- 6. Recent events ----
+    // ---- 7. Recent events ----
     const recentEventsRaw = await Event.find({ organizerId: userId })
       .sort({ createdAt: -1 })
       .limit(5)
@@ -142,7 +138,7 @@ exports.getDashboardData = async (req, res) => {
       statusColor: statusColorMap[event.status] || 'text-gray-500 bg-gray-50'
     }));
 
-    // ---- 7. Stats cards ----
+    // ---- 8. Stats cards ----
     const stats = [
       {
         title: 'Total Events',
@@ -198,10 +194,9 @@ exports.getDashboardData = async (req, res) => {
 };
 
 // ============================================================
-// EXISTING / STUB ENDPOINTS (to avoid "undefined" errors)
+// EXISTING / STUB ENDPOINTS
 // ============================================================
 
-// GET /api/dashboard/summary
 exports.getSummary = async (req, res) => {
   try {
     res.json({ message: 'Summary endpoint' });
@@ -210,7 +205,6 @@ exports.getSummary = async (req, res) => {
   }
 };
 
-// GET /api/dashboard/revenue
 exports.getRevenue = async (req, res) => {
   try {
     res.json({ message: 'Revenue endpoint' });
@@ -219,7 +213,6 @@ exports.getRevenue = async (req, res) => {
   }
 };
 
-// GET /api/dashboard/activity
 exports.getActivity = async (req, res) => {
   try {
     res.json({ message: 'Activity endpoint' });

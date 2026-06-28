@@ -101,18 +101,12 @@ exports.registerAttendee = async (req, res, next) => {
     console.log('🔵 [ATTENDEE] req.body:', req.body);
 
     const userId = req.user._id || req.user.id;
-    console.log('🔵 [ATTENDEE] userId:', userId);
-
     if (!userId) {
       return next({ statusCode: 401, message: 'Unauthorized' });
     }
 
     const { eventId } = req.params;
-    console.log('🔵 [ATTENDEE] Looking for event:', eventId);
-
     const event = await Event.findOne({ _id: eventId, organizerId: userId });
-    console.log('🔵 [ATTENDEE] Event found:', event);
-
     if (!event) {
       return next({ statusCode: 404, message: 'Event not found or not yours' });
     }
@@ -131,6 +125,11 @@ exports.registerAttendee = async (req, res, next) => {
 
     const attendee = new Attendee(attendeeData);
     await attendee.save();
+
+    // ✅ NEW: Increment ticketsSold on the event
+    event.ticketsSold = (event.ticketsSold || 0) + 1;
+    await event.save();
+    console.log(`🔵 [ATTENDEE] Updated event.ticketsSold to ${event.ticketsSold}`);
 
     req.app.get('io').emit('attendeeRegistered', { eventId, attendee });
     await activityService.logActivity(userId, 'attendee_registered', attendee._id, { eventId, email: attendee.email });
