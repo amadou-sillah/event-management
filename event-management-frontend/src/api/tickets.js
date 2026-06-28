@@ -8,13 +8,15 @@ export const fetchTickets = async () => {
 
 // Get tickets for a specific event
 export const fetchEventTickets = async (eventId) => {
-  const response = await apiClient.get(`/events/${eventId}/tickets`);
+  // ✅ Correct: include /tickets prefix
+  const response = await apiClient.get(`/tickets/events/${eventId}/tickets`);
   return response.data?.data || [];
 };
 
 // Create a new ticket type for an event
 export const createTicket = async (eventId, ticketData) => {
-  const response = await apiClient.post(`/events/${eventId}/tickets`, ticketData);
+  // ✅ Correct: include /tickets prefix
+  const response = await apiClient.post(`/tickets/events/${eventId}/tickets`, ticketData);
   return response.data?.data;
 };
 
