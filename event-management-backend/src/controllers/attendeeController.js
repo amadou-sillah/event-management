@@ -51,7 +51,7 @@ exports.getAllAttendees = async (req, res, next) => {
 };
 
 // ============================================================
-// GET /api/events/:eventId/attendees – Get attendees for a specific event (optional)
+// GET /api/events/:eventId/attendees – Get attendees for a specific event
 // ============================================================
 exports.getEventAttendees = async (req, res, next) => {
   try {
@@ -61,7 +61,6 @@ exports.getEventAttendees = async (req, res, next) => {
     }
 
     const { eventId } = req.params;
-    // Verify the event belongs to this organizer
     const event = await Event.findOne({ _id: eventId, organizerId: userId });
     if (!event) {
       return next({ statusCode: 404, message: 'Event not found or not yours' });
@@ -97,18 +96,28 @@ exports.getEventAttendees = async (req, res, next) => {
 // ============================================================
 exports.registerAttendee = async (req, res, next) => {
   try {
+    console.log('🔵 [ATTENDEE] registerAttendee called');
+    console.log('🔵 [ATTENDEE] req.params:', req.params);
+    console.log('🔵 [ATTENDEE] req.body:', req.body);
+
     const userId = req.user._id || req.user.id;
+    console.log('🔵 [ATTENDEE] userId:', userId);
+
     if (!userId) {
       return next({ statusCode: 401, message: 'Unauthorized' });
     }
 
     const { eventId } = req.params;
+    console.log('🔵 [ATTENDEE] Looking for event:', eventId);
+
     const event = await Event.findOne({ _id: eventId, organizerId: userId });
+    console.log('🔵 [ATTENDEE] Event found:', event);
+
     if (!event) {
       return next({ statusCode: 404, message: 'Event not found or not yours' });
     }
 
-    // Check if attendee already exists for this event and email
+    // Check if attendee already exists
     const existing = await Attendee.findOne({ eventId, email: req.body.email.toLowerCase() });
     if (existing) {
       return next({ statusCode: 409, message: 'Attendee already registered for this event' });
@@ -123,13 +132,12 @@ exports.registerAttendee = async (req, res, next) => {
     const attendee = new Attendee(attendeeData);
     await attendee.save();
 
-    // Emit socket event if needed
     req.app.get('io').emit('attendeeRegistered', { eventId, attendee });
     await activityService.logActivity(userId, 'attendee_registered', attendee._id, { eventId, email: attendee.email });
 
     ApiResponse.success(res, 'Attendee registered', attendee, 201);
   } catch (error) {
-    console.error('RegisterAttendee error:', error);
+    console.error('🔴 [ATTENDEE] Register error:', error);
     next(error);
   }
 };
@@ -149,13 +157,12 @@ exports.checkInAttendee = async (req, res, next) => {
       return next({ statusCode: 404, message: 'Attendee not found' });
     }
 
-    // Verify the attendee's event belongs to this organizer
     const event = await Event.findOne({ _id: attendee.eventId._id, organizerId: userId });
     if (!event) {
       return next({ statusCode: 403, message: 'You do not have permission to check in this attendee' });
     }
 
-    attendee.checkedIn = !attendee.checkedIn; // toggle
+    attendee.checkedIn = !attendee.checkedIn;
     await attendee.save();
 
     req.app.get('io').emit('attendeeCheckedIn', { attendeeId: req.params.id, checkedIn: attendee.checkedIn });
@@ -183,7 +190,6 @@ exports.deleteAttendee = async (req, res, next) => {
       return next({ statusCode: 404, message: 'Attendee not found' });
     }
 
-    // Verify the attendee's event belongs to this organizer
     const event = await Event.findOne({ _id: attendee.eventId._id, organizerId: userId });
     if (!event) {
       return next({ statusCode: 403, message: 'You do not have permission to delete this attendee' });
