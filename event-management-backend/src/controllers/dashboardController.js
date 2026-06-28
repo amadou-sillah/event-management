@@ -9,7 +9,16 @@ const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep
 // ============================================================
 exports.getDashboardData = async (req, res) => {
   try {
-    const userId = req.user.id;
+    // ✅ FIX: Use the same safe pattern as eventController
+    const userId = req.user?._id || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Unauthorized: No user ID found' 
+      });
+    }
+
+    console.log('🔍 Dashboard userId:', userId);
 
     // ---- 1. User name ----
     const user = await User.findById(userId);
@@ -17,6 +26,7 @@ exports.getDashboardData = async (req, res) => {
 
     // ---- 2. Basic counts ----
     const totalEvents = await Event.countDocuments({ organizerId: userId });
+    console.log('📊 Total events:', totalEvents);
 
     const attendeeAgg = await Event.aggregate([
       { $match: { organizerId: userId } },
@@ -116,6 +126,8 @@ exports.getDashboardData = async (req, res) => {
       .limit(5)
       .select('title startDate status');
 
+    console.log('📋 Recent events found:', recentEventsRaw.length);
+
     const statusColorMap = {
       'published': 'text-emerald-500 bg-emerald-50',
       'draft': 'text-amber-500 bg-amber-50',
@@ -192,7 +204,6 @@ exports.getDashboardData = async (req, res) => {
 // GET /api/dashboard/summary
 exports.getSummary = async (req, res) => {
   try {
-    // Placeholder – you can implement real summary logic later
     res.json({ message: 'Summary endpoint' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -202,7 +213,6 @@ exports.getSummary = async (req, res) => {
 // GET /api/dashboard/revenue
 exports.getRevenue = async (req, res) => {
   try {
-    // Placeholder
     res.json({ message: 'Revenue endpoint' });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -212,7 +222,6 @@ exports.getRevenue = async (req, res) => {
 // GET /api/dashboard/activity
 exports.getActivity = async (req, res) => {
   try {
-    // Placeholder
     res.json({ message: 'Activity endpoint' });
   } catch (error) {
     res.status(500).json({ error: error.message });
