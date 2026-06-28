@@ -11,16 +11,15 @@ import {
   Calendar,
   X,
   AlertCircle,
-  CheckCircle,
-  Eye,
+  ShoppingCart,
 } from "lucide-react";
 import { Card, CardContent } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Badge } from "../components/ui/badge";
 import { Modal } from "../components/ui/modal";
-import { fetchTickets, createTicket, updateTicket, deleteTicket } from "../api/tickets";
-import { fetchEvents } from "../api/events"; // we need events list for the dropdown
+import { fetchTickets, createTicket, updateTicket, deleteTicket, purchaseTicket } from "../api/tickets";
+import { fetchEvents } from "../api/events";
 import { useToast } from "../contexts/toast-context";
 
 // Animation variants
@@ -160,6 +159,17 @@ export default function Ticketing() {
       addToast("Ticket deleted", "success");
     } catch (err) {
       addToast(err.userMessage || "Delete failed", "error");
+    }
+  };
+
+  // ---- Purchase ticket ----
+  const handlePurchase = async (ticketId, quantity = 1) => {
+    try {
+      const result = await purchaseTicket(ticketId, quantity);
+      addToast(`✅ Purchased ${quantity} ticket(s)!`, "success");
+      await loadData(); // Refresh tickets
+    } catch (err) {
+      addToast(err.userMessage || "Purchase failed", "error");
     }
   };
 
@@ -325,6 +335,21 @@ export default function Ticketing() {
                       Delete
                     </Button>
                   </div>
+
+                  {/* ---- BUY BUTTON ---- */}
+                  {ticket.quantityAvailable > 0 && (
+                    <div className="mt-3">
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30"
+                        onClick={() => handlePurchase(ticket._id, 1)}
+                      >
+                        <ShoppingCart className="w-4 h-4 mr-2" />
+                        Buy 1 Ticket (${ticket.price})
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -345,7 +370,7 @@ export default function Ticketing() {
               className="w-full mt-1 px-3 py-2 border rounded-md bg-background"
               value={formData.eventId}
               onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
-              disabled={!!editingTicket} // can't change event after creation (optional)
+              disabled={!!editingTicket}
             >
               <option value="">Select an event</option>
               {events.map((ev) => (

@@ -14,7 +14,6 @@ export const fetchEventTickets = async (eventId) => {
 
 // Create a new ticket type for an event
 export const createTicket = async (eventId, ticketData) => {
-  console.log(`📤 createTicket for event ${eventId}:`, ticketData);
   const response = await apiClient.post(`/tickets/events/${eventId}/tickets`, ticketData);
   return response.data?.data;
 };
